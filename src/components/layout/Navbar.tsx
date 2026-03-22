@@ -23,6 +23,25 @@ export function Navbar() {
   const activeDownloads = queue.filter((d) => d.status === 'downloading' || d.status === 'queued' || d.status === 'tagging').length
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  // Handle scroll to hide/show navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        setIsNavbarVisible(false)
+      } else if (currentScrollY < lastScrollY) {
+        setIsNavbarVisible(true)
+      }
+      setLastScrollY(currentScrollY)
+    }
+
+    // Passive listener for performance
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -40,7 +59,10 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
+      <header className={cn(
+        "sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md transition-transform duration-300",
+        !isNavbarVisible && "-translate-y-full"
+      )}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}

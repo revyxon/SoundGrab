@@ -1,8 +1,9 @@
 import { useParams, Link } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
-import { Clock, Disc3, Calendar, Globe, Headphones, CheckCircle2, Music, Play, Pause, Download, PlayCircle, PauseCircle } from 'lucide-react'
+import { Clock, Disc3, Calendar, Globe, Headphones, CheckCircle2, Music, Play, Pause, Download, PlayCircle, PauseCircle, Share2, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import { useSong, useSongSuggestions } from '@/hooks/use-songs'
 import { useArtist } from '@/hooks/use-artists'
 import { ImageWithFallback } from '@/components/shared/ImageWithFallback'
@@ -134,9 +135,33 @@ export function SongPage() {
 
           {/* Right Column: Title and Downloads */}
           <div className="flex-1 w-full min-w-0 pt-2 flex flex-col justify-center">
-            <Badge variant="outline" className="w-fit mb-4 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground border-border bg-transparent">
-              {song.type || 'Single Track'}
-            </Badge>
+            <div className="flex items-center justify-between mb-4">
+              <Badge variant="outline" className="w-fit text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground border-border bg-transparent">
+                {song.type || 'Single Track'}
+              </Badge>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-full"
+                title="Share this song"
+                onClick={() => {
+                  const shareData = {
+                    title: `SoundGrab - ${decodedSongName}`,
+                    text: `Listen to ${decodedSongName} by ${song.artists.primary.map(a => decodeHtmlEntities(a.name)).join(', ')}`,
+                    url: window.location.href,
+                  }
+                  if (navigator.share) {
+                    navigator.share(shareData).catch(console.error)
+                  } else {
+                    navigator.clipboard.writeText(window.location.href)
+                    toast.success('Link copied to clipboard')
+                  }
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-2">
               {decodedSongName}

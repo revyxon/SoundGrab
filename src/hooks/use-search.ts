@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { globalSearch, searchSongs, searchAlbums, searchArtists, searchPlaylists } from '@/services/search.service'
 
 export function useGlobalSearch(query: string) {
@@ -14,6 +14,7 @@ export function useSearchSongs(query: string, page = 0, limit = 20) {
     queryKey: ['search', 'songs', query, page, limit],
     queryFn: () => searchSongs(query, page, limit),
     enabled: query.length > 1,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -22,6 +23,7 @@ export function useSearchAlbums(query: string, page = 0, limit = 20) {
     queryKey: ['search', 'albums', query, page, limit],
     queryFn: () => searchAlbums(query, page, limit),
     enabled: query.length > 1,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -30,6 +32,7 @@ export function useSearchArtists(query: string, page = 0, limit = 20) {
     queryKey: ['search', 'artists', query, page, limit],
     queryFn: () => searchArtists(query, page, limit),
     enabled: query.length > 1,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -38,5 +41,6 @@ export function useSearchPlaylists(query: string, page = 0, limit = 20) {
     queryKey: ['search', 'playlists', query, page, limit],
     queryFn: () => searchPlaylists(query, page, limit),
     enabled: query.length > 1,
+    placeholderData: keepPreviousData,
   })
 }

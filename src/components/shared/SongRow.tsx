@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Song } from '@/types'
-import { formatDuration } from '@/lib/utils'
+import { formatDuration, decodeHtmlEntities } from '@/lib/utils'
 import { ImageWithFallback } from './ImageWithFallback'
 import { DownloadButton } from './DownloadButton'
 import { Badge } from '@/components/ui/badge'
@@ -18,39 +18,39 @@ export function SongRow({ song, index, showAlbum = true, showImage = true, track
   const maxQuality = song.downloadUrl?.[song.downloadUrl.length - 1]?.quality || '—'
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors rounded-md">
+    <div className="group flex items-center gap-2 md:gap-4 px-1 sm:px-4 py-3 hover:bg-muted/50 transition-colors rounded-lg">
       {/* Index */}
       {index !== undefined && (
-        <span className="w-6 text-right text-xs text-muted-foreground tabular-nums">
+        <span className="w-5 md:w-8 text-right text-xs md:text-sm text-muted-foreground tabular-nums">
           {index + 1}
         </span>
       )}
 
       {/* Cover art */}
       {showImage && (
-        <Link to={`/song/${song.id}`} className="shrink-0">
+        <Link to={`/song/${song.id}`} className="shrink-0 overflow-hidden shadow-sm hover:shadow-md transition-shadow rounded-md">
           <ImageWithFallback
             images={song.image}
-            imageQuality="low"
-            alt={song.name}
-            className="h-10 w-10 rounded-md"
+            imageQuality="high"
+            alt={decodeHtmlEntities(song.name)}
+            className="h-12 w-12 md:h-14 md:w-14 object-cover"
           />
         </Link>
       )}
 
       {/* Song info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pr-4">
         <Link to={`/song/${song.id}`} className="block">
-          <p className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
-            {song.name}
+          <p className="text-base font-semibold text-foreground truncate hover:text-primary transition-colors">
+            {decodeHtmlEntities(song.name)}
           </p>
         </Link>
-        <p className="text-xs text-muted-foreground truncate">
+        <p className="text-xs md:text-sm text-muted-foreground truncate mt-0.5">
           {primaryArtists.map((a, i) => (
             <span key={a.id}>
               {i > 0 && ', '}
               <Link to={`/artist/${a.id}`} className="hover:text-foreground transition-colors">
-                {a.name}
+                {decodeHtmlEntities(a.name)}
               </Link>
             </span>
           ))}
@@ -61,9 +61,9 @@ export function SongRow({ song, index, showAlbum = true, showImage = true, track
       {showAlbum && song.album?.id && (
         <Link
           to={`/album/${song.album.id}`}
-          className="hidden md:block w-40 text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+          className="hidden md:block w-32 lg:w-48 text-sm text-muted-foreground truncate hover:text-foreground transition-colors"
         >
-          {song.album.name}
+          {decodeHtmlEntities(song.album.name)}
         </Link>
       )}
 

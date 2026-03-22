@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/core/query-client'
 import { AppShell } from '@/components/layout/AppShell'
@@ -13,7 +13,7 @@ import { HistoryPage } from '@/pages/HistoryPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { AboutPage } from '@/pages/AboutPage'
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     element: <AppShell />,
     children: [

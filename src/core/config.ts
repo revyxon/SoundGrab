@@ -19,7 +19,7 @@ export const FILE_NAME_PATTERNS = [
   { value: '{track}. {title}', label: 'Track#. Title' },
 ] as const
 
-export const DEFAULT_FILE_NAME_PATTERN = '{artist} - {title}'
+export const DEFAULT_FILE_NAME_PATTERN = '{title}'
 
 export const MAX_CONCURRENT_DOWNLOADS = 3
 export const MAX_RETRY_COUNT = 3

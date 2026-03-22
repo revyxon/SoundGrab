@@ -9,10 +9,12 @@ import { AlbumCard } from '@/components/shared/AlbumCard'
 import { ArtistCard } from '@/components/shared/ArtistCard'
 import { PlaylistCard } from '@/components/shared/PlaylistCard'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { PaginationControls } from '@/components/shared/PaginationControls'
 import { SongListSkeleton, CardGridSkeleton } from '@/components/shared/Skeletons'
 import { useSearchSongs, useSearchAlbums, useSearchArtists, useSearchPlaylists } from '@/hooks/use-search'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useSearchStore } from '@/stores/search-store'
+import { cn } from '@/lib/utils'
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -21,6 +23,24 @@ export function SearchPage() {
   const [tab, setTab] = useState(searchParams.get('tab') || 'songs')
   const [page, setPage] = useState(0)
   const debouncedQuery = useDebounce(query, 300)
+
+  // Scroll direction logic for sticky header
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        setIsNavbarVisible(false)
+      } else if (currentScrollY < lastScrollY) {
+        setIsNavbarVisible(true)
+      }
+      setLastScrollY(currentScrollY)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
 
   const { recentSearches, addRecentSearch, removeRecentSearch } = useSearchStore()
 
@@ -43,29 +63,35 @@ export function SearchPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 animate-fade-in">
-      {/* Search bar */}
-      <div className="relative max-w-2xl mx-auto mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search songs, albums, artists, playlists..."
-          className="pl-9 pr-9 h-11 bg-surface"
-          autoFocus
-          id="search-input"
-        />
-        {query && (
-          <button onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
-            <X className="h-4 w-4" />
-          </button>
-        )}
+    <div className="mx-auto max-w-7xl px-2 sm:px-6 animate-fade-in relative pb-12 pt-6 md:pt-10">
+      
+      {/* Normal Search Input */}
+      <div className="relative max-w-4xl mx-auto px-2 sm:px-0 mb-6 sm:mb-8">
+          <Search className="absolute left-5 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.currentTarget.blur()
+              }
+            }}
+            placeholder="Search songs, albums, artists, playlists..."
+            className="pl-9 pr-9 h-12 bg-surface rounded-xl border-border/50 hover:bg-muted/50 transition-colors focus:bg-surface focus:ring-1"
+            autoFocus
+            id="search-input"
+          />
+          {query && (
+            <button onClick={handleClear} className="absolute right-5 sm:right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-1">
+              <X className="h-4 w-4" />
+            </button>
+          )}
       </div>
 
       {/* Recent searches (when no query) */}
       {!debouncedQuery && recentSearches.length > 0 && (
-        <div className="max-w-2xl mx-auto mb-8">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Recent Searches</h3>
+        <div className="max-w-4xl mx-auto mb-10">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Recent Searches</h3>
           <div className="flex flex-wrap gap-2">
             {recentSearches.map((s) => (
               <button
@@ -98,21 +124,23 @@ export function SearchPage() {
 
       {/* Results */}
       {debouncedQuery && (
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="songs">
-              Songs {songsQuery.data && `(${songsQuery.data.total})`}
-            </TabsTrigger>
-            <TabsTrigger value="albums">
-              Albums {albumsQuery.data && `(${albumsQuery.data.total})`}
-            </TabsTrigger>
-            <TabsTrigger value="artists">
-              Artists {artistsQuery.data && `(${artistsQuery.data.total})`}
-            </TabsTrigger>
-            <TabsTrigger value="playlists">
-              Playlists {playlistsQuery.data && `(${playlistsQuery.data.total})`}
-            </TabsTrigger>
-          </TabsList>
+        <div className="max-w-5xl mx-auto px-2">
+          <Tabs value={tab} onValueChange={setTab}>
+            
+            {/* Sticky TabsList exclusively for navigation */}
+            <div 
+              className={cn(
+                "sticky z-30 transition-[top] duration-300 left-0 right-0 backdrop-blur-md bg-background/80 py-2 -mx-2 px-2 sm:-mx-6 sm:px-6 mb-4 border-b border-border/30",
+                isNavbarVisible ? "top-16" : "top-0"
+              )}
+            >
+              <TabsList className="bg-muted/40 p-1 w-full flex justify-start overflow-x-auto no-scrollbar">
+                <TabsTrigger value="songs" className="rounded-md ring-offset-background">Songs {songsQuery.data && `(${songsQuery.data.total})`}</TabsTrigger>
+                <TabsTrigger value="albums" className="rounded-md ring-offset-background">Albums {albumsQuery.data && `(${albumsQuery.data.total})`}</TabsTrigger>
+                <TabsTrigger value="artists" className="rounded-md ring-offset-background">Artists {artistsQuery.data && `(${artistsQuery.data.total})`}</TabsTrigger>
+                <TabsTrigger value="playlists" className="rounded-md ring-offset-background">Playlists {playlistsQuery.data && `(${playlistsQuery.data.total})`}</TabsTrigger>
+              </TabsList>
+            </div>
 
           {/* Songs */}
           <TabsContent value="songs">
@@ -134,15 +162,13 @@ export function SearchPage() {
                   <span className="hidden lg:block w-16">Quality</span>
                   <span className="w-8" />
                 </div>
-                {songsQuery.data.results.map((song, i) => (
-                  <SongRow key={song.id} song={song} index={i} />
+                {songsQuery.data.results.map((song) => (
+                  <SongRow key={song.id} song={song} />
                 ))}
-                {songsQuery.data.total > (page + 1) * 20 && (
-                  <div className="flex justify-center mt-4">
-                    <Button variant="outline" onClick={() => setPage((p) => p + 1)}>Load More</Button>
-                  </div>
-                )}
               </div>
+            )}
+            {songsQuery.data && songsQuery.data.total > 20 && (
+              <PaginationControls page={page} total={songsQuery.data.total} pageSize={20} setPage={setPage} />
             )}
           </TabsContent>
 
@@ -159,6 +185,9 @@ export function SearchPage() {
                 ))}
               </div>
             )}
+            {albumsQuery.data && albumsQuery.data.total > 20 && (
+              <PaginationControls page={page} total={albumsQuery.data.total} pageSize={20} setPage={setPage} />
+            )}
           </TabsContent>
 
           {/* Artists */}
@@ -173,6 +202,9 @@ export function SearchPage() {
                   <ArtistCard key={artist.id} artist={artist} />
                 ))}
               </div>
+            )}
+            {artistsQuery.data && artistsQuery.data.total > 20 && (
+              <PaginationControls page={page} total={artistsQuery.data.total} pageSize={20} setPage={setPage} />
             )}
           </TabsContent>
 
@@ -189,8 +221,12 @@ export function SearchPage() {
                 ))}
               </div>
             )}
+            {playlistsQuery.data && playlistsQuery.data.total > 20 && (
+              <PaginationControls page={page} total={playlistsQuery.data.total} pageSize={20} setPage={setPage} />
+            )}
           </TabsContent>
         </Tabs>
+        </div>
       )}
     </div>
   )
