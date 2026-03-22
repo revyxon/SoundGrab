@@ -4,6 +4,7 @@ import { Clock, Disc3, Calendar, Globe, Headphones, CheckCircle2, Music, Play, P
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useSong, useSongSuggestions } from '@/hooks/use-songs'
+import { useArtist } from '@/hooks/use-artists'
 import { ImageWithFallback } from '@/components/shared/ImageWithFallback'
 import { DownloadButton } from '@/components/shared/DownloadButton'
 import { SongRow } from '@/components/shared/SongRow'
@@ -25,7 +26,15 @@ function formatTime(seconds: number) {
 export function SongPage() {
   const { id } = useParams<{ id: string }>()
   const { data: song, isLoading, isError, refetch } = useSong(id)
-  const { data: suggestions } = useSongSuggestions(id, 8)
+  
+  // Use artist's top songs as a robust fallback since API suggestions route is currently unstable
+  const primaryArtistId = song?.artists.primary?.[0]?.id
+  const { data: artistDetails } = useArtist(primaryArtistId || undefined)
+  const { data: directSuggestions } = useSongSuggestions(id, 8)
+  
+  const suggestions = (directSuggestions && directSuggestions.length > 0) 
+    ? directSuggestions 
+    : (artistDetails?.topSongs?.filter(s => s.id !== id).slice(0, 8) || [])
   const defaultQuality = useSettingsStore((s) => s.defaultQuality)
   const [selectedQuality, setSelectedQuality] = useState<QualityValue>(defaultQuality)
 
